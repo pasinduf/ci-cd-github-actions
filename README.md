@@ -57,4 +57,4 @@ This repository demonstrates a modern **full CI/CD pipeline** using **GitHub Act
 
 - Ensure VPS has Docker installed
 - Use `.env` files securely
-- Save all necessary secrets in Git Repo secrets (Repo → Settings → Secrets → Actions) 
+- Save all necessary secrets in Git Repo secrets (Repo → Settings → Secrets → Actions → New repository secret) 
