@@ -1,0 +1,54 @@
+name: CI/CD Deploy API
+
+on:
+  push:
+    branches:
+      - main 
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1️⃣ Checkout code
+      - uses: actions/checkout@v4
+
+      # 2️⃣ Setup Node
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 18
+          cache: 'npm'
+
+      # 3️⃣ Install dependencies
+      - name: Install dependencies
+        run: npm ci
+
+      # 4️⃣ Run tests (optional, if you have)
+      - name: Run tests
+        run: npm test -- --ci --runInBand
+
+      # 5️⃣ Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t {{image-name}}:latest .
+
+      # 6️⃣ Deploy to VPS
+      - name: Deploy to VPS
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            echo "Stopping old container if exists..."
+            docker stop {{container-name}} || true
+            docker rm {{container-name}} || true
+
+            echo "Running new container..."
+            docker run -d \
+              --name {{container-name}} \
+              -p 3000:3000 \
+              --env-file /home/docker/api/.env \
+              {{image-name}}:latest
+
+            echo "Deployment complete."
